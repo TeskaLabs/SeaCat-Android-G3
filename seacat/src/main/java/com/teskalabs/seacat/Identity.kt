@@ -24,11 +24,7 @@ import java.util.concurrent.Callable
 
 // Identity is a basically combination of certificate + public key + private key
 // It is used to represent a current application instance in a cryptography strong manner
-class Identity(val seacat: SeaCat) {
-
-    companion object {
-        const val INTENT_ACTION_NEW_IDENTITY = "INTENT_ACTION_NEW_IDENTITY"
-    }
+class Identity(private val seacat: SeaCat) {
 
     private val TAG = "Identity"
     private val alias = "SeaCatIdentity"
@@ -69,6 +65,13 @@ class Identity(val seacat: SeaCat) {
     private fun reset() {
         keyStore.deleteEntry(alias)
         keyStore.deleteEntry(alias + "Certificate")
+
+        // There is a new identity now, broadcast it
+        val intent = Intent()
+        intent.addCategory(SeaCat.CATEGORY_SEACAT)
+        intent.action = SeaCat.ACTION_IDENTITY_RESET
+        seacat.broadcastManager.sendBroadcast(intent)
+
     }
 
 
@@ -160,16 +163,17 @@ class Identity(val seacat: SeaCat) {
                 return@Callable
             }
 
-            // There is a new identity now, broadcast it
-            val intent = Intent()
-            intent.addCategory(SeaCat.INTENT_CATEGORY_SEACAT)
-            intent.action = INTENT_ACTION_NEW_IDENTITY
-            seacat.broadcastManager.sendBroadcast(intent)
-
             val certificate = SeaCat.certificateFactory.generateCertificate(connection.inputStream)
             keyStore.setCertificateEntry(alias + "Certificate", certificate)
 
             load()
+
+            // There is a new identity now, broadcast it
+            val intent = Intent()
+            intent.addCategory(SeaCat.CATEGORY_SEACAT)
+            intent.action = SeaCat.ACTION_IDENTITY_ESTABLISHED
+            seacat.broadcastManager.sendBroadcast(intent)
+
         } )
     }
 

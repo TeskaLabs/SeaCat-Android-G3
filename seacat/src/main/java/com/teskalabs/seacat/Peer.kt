@@ -5,7 +5,7 @@ import java.net.URL
 import java.security.cert.Certificate
 import java.util.concurrent.Callable
 
-class Peer(val seacat: SeaCat) {
+class Peer(private val seacat: SeaCat) {
 
     fun fetchCertificate(identity: String, completion: (certificate: Certificate) -> Unit) {
 
@@ -39,7 +39,7 @@ class Peer(val seacat: SeaCat) {
 }
 
 
-private class PeerCertificateDownloadTask(val seacat: SeaCat, val identity: String) : Callable<Certificate?> {
+private class PeerCertificateDownloadTask(private val seacat: SeaCat, private val identity: String) : Callable<Certificate?> {
 
     override fun call(): Certificate? {
         val url = URL(seacat.apiURL + "/get/$identity")

@@ -8,6 +8,7 @@ import java.util.concurrent.Executors
 class SeaCat(val context: Context, val title: String, val apiURL: String) {
 
     companion object {
+        const val INTENT_CATEGORY_SEACAT = "INTENT_CATEGORY_SEACAT"
         val certificateFactory = CertificateFactory.getInstance("X.509")
         val executor = Executors.newSingleThreadScheduledExecutor()
     }

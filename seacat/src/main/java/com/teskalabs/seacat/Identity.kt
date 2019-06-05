@@ -2,6 +2,7 @@ package com.teskalabs.seacat
 
 import android.annotation.TargetApi
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.security.keystore.KeyGenParameterSpec
@@ -24,6 +25,10 @@ import java.util.concurrent.Callable
 // Identity is a basically combination of certificate + public key + private key
 // It is used to represent a current application instance in a cryptography strong manner
 class Identity(val seacat: SeaCat) {
+
+    companion object {
+        const val INTENT_ACTION_NEW_IDENTITY = "INTENT_ACTION_NEW_IDENTITY"
+    }
 
     private val TAG = "Identity"
     private val alias = "SeaCatIdentity"
@@ -154,6 +159,12 @@ class Identity(val seacat: SeaCat) {
                 Log.e(TAG, "Failed to upload the request: %d".format(connection.responseCode))
                 return@Callable
             }
+
+            // There is a new identity now, broadcast it
+            val intent = Intent()
+            intent.addCategory(SeaCat.INTENT_CATEGORY_SEACAT)
+            intent.action = INTENT_ACTION_NEW_IDENTITY
+            seacat.broadcastManager.sendBroadcast(intent)
 
             val certificate = SeaCat.certificateFactory.generateCertificate(connection.inputStream)
             keyStore.setCertificateEntry(alias + "Certificate", certificate)

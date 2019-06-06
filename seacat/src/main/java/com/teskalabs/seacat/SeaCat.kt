@@ -1,7 +1,7 @@
 package com.teskalabs.seacat
 
 import android.content.Context
-import android.support.v4.content.LocalBroadcastManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.security.cert.CertificateFactory
 import java.util.concurrent.Executors
 

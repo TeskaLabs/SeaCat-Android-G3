@@ -16,8 +16,7 @@ class SeaCat(internal val context: Context, internal val title: String, internal
         const val ACTION_IDENTITY_RESET = "com.teskalabs.seacat.intent.action.IDENTITY_RESET"
     }
 
+    internal val broadcastManager = LocalBroadcastManager.getInstance(context)
     val identity = Identity(this)
     val peer = Peer(this)
-
-    internal val broadcastManager = LocalBroadcastManager.getInstance(context)
 }

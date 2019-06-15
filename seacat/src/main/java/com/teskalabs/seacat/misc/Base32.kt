@@ -1,4 +1,4 @@
-package com.teskalabs.seacat
+package com.teskalabs.seacat.misc
 
 
 class Base32 protected constructor(private val ALPHABET: String) {

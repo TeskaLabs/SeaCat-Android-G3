@@ -8,8 +8,8 @@ import java.util.concurrent.Executors
 class SeaCat(internal val context: Context, internal val title: String, internal val apiURL: String) {
 
     companion object {
-        val certificateFactory = CertificateFactory.getInstance("X.509")
-        val executor = Executors.newSingleThreadScheduledExecutor()
+        internal val certificateFactory = CertificateFactory.getInstance("X.509")
+        internal val executor = Executors.newSingleThreadScheduledExecutor()
 
         const val CATEGORY_SEACAT = "com.teskalabs.seacat.intent.category.SEACAT"
         const val ACTION_IDENTITY_ESTABLISHED = "com.teskalabs.seacat.intent.action.IDENTITY_ESTABLISHED"
@@ -17,6 +17,7 @@ class SeaCat(internal val context: Context, internal val title: String, internal
     }
 
     internal val broadcastManager = LocalBroadcastManager.getInstance(context)
+
     val identity = Identity(this)
     val peer = Peer(this)
 }

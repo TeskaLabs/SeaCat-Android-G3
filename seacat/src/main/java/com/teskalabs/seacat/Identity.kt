@@ -9,6 +9,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Log
 import com.teskalabs.seacat.miniasn1.MiniASN1
+import com.teskalabs.seacat.misc.Base32
 import java.io.DataOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection

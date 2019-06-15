@@ -1,7 +1,7 @@
 package com.teskalabs.seacat
 
 import android.content.Context
-import android.support.v4.content.LocalBroadcastManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.security.cert.CertificateFactory
 import java.util.concurrent.Executors
 
@@ -16,8 +16,8 @@ class SeaCat(internal val context: Context, internal val title: String, internal
         const val ACTION_IDENTITY_RESET = "com.teskalabs.seacat.intent.action.IDENTITY_RESET"
     }
 
+    internal val broadcastManager = LocalBroadcastManager.getInstance(context)
+
     val identity = Identity(this)
     val peer = Peer(this)
-
-    internal val broadcastManager = LocalBroadcastManager.getInstance(context)
 }

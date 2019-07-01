@@ -27,8 +27,8 @@ class Peer(private val seacat: SeaCat) {
         //TODO: getPeerCertificateFromMemCache
         //TODO: loadPeerCertificateFromDirCache
 
-        val future = SeaCat.executor.submit(PeerCertificateDownloadTask(seacat, identity))
-        val certificate = future.get()
+        val task = PeerCertificateDownloadTask(seacat, identity)
+        val certificate = task.call()
         if (certificate != null) {
             return certificate
         } else {

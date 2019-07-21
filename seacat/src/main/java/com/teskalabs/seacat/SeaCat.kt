@@ -21,5 +21,5 @@ class SeaCat(internal val context: Context, internal val title: String, internal
     internal val broadcastManager = LocalBroadcastManager.getInstance(context)
 
     val identity = Identity(this)
-    val peer = Peer(this)
+    val peers = PeerProvider(this)
 }

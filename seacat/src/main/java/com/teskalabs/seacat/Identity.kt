@@ -273,8 +273,8 @@ class Identity(private val seacat: SeaCat) {
     private fun generate_api23(requireUserAuth: Boolean): KeyPair {
 
         val parameterSpec: KeyGenParameterSpec = KeyGenParameterSpec.Builder(
-                alias,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT or KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
+            alias,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT or KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
         ).run {
             setDigests(
                 KeyProperties.DIGEST_NONE, // TLS/SSL stacks generate the digest(s) themselves

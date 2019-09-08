@@ -25,7 +25,10 @@ class PeerProvider(private val seacat: SeaCat) {
     fun fetchCertificate(identity: String, completion: (certificate: Certificate?) -> Unit) {
 
         val cachedCertificate: Certificate? = getCertificateFromCaches(identity)
-        if (cachedCertificate != null) completion(cachedCertificate)
+        if (cachedCertificate != null) {
+            completion(cachedCertificate)
+            return
+        }
 
         SeaCat.executor.submit {
             val t = PeerCertificateDownloadTask(seacat, identity, DiskCacheDir)

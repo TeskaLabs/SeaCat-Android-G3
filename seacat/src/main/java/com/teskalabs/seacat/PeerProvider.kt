@@ -114,6 +114,7 @@ private class PeerCertificateDownloadTask(private val seacat: SeaCat, private va
         val certificate: Certificate = with (url.openConnection() as HttpURLConnection ) {
             requestMethod = "GET"
             connectTimeout = 3000
+            readTimeout = 3000
 
             if (responseCode != 200) {
                 Log.w(SeaCat.TAG, "Invalid response code from $url: " + responseCode)

@@ -100,7 +100,7 @@ class Identity(private val seacat: SeaCat) {
         // Build a request body that will be signed (to-be-signed)
         var tbsRequest = MiniASN1.DER.SEQUENCE(arrayOf(
             MiniASN1.DER.INTEGER(0x1902),
-            MiniASN1.DER.UTF8String(seacat.title), // label
+            MiniASN1.DER.UTF8String(seacat.context.getPackageName()), // application
             MiniASN1.DER.UTCTime(created_at), // createdAt
             MiniASN1.DER.UTCTime(valid_to), // validTo
             MiniASN1.DER.SEQUENCE(arrayOf( // SubjectPublicKeyInfo
@@ -111,6 +111,8 @@ class Identity(private val seacat: SeaCat) {
                 MiniASN1.DER.BIT_STRING(public_key_encoded.copyOfRange(public_key_encoded.size-65, public_key_encoded.size))
             )),
             MiniASN1.DER.SEQUENCE_OF(arrayOf( // Parameters
+                //TODO: From BuildConfig, add BUILD_TYPE, FLAVOR, VERSION_CODE, VERSION_NAME
+                // See https://stackoverflow.com/questions/23431354/how-to-get-the-build-variant-at-runtime-in-android-studio
             ))
         ))
         tbsRequest = byteArrayOf(0xA0.toByte()) + tbsRequest.copyOfRange(1, tbsRequest.size)
@@ -184,7 +186,13 @@ class Identity(private val seacat: SeaCat) {
     // Get identity certificate
     val certificate: Certificate?
         get() {
-            return keyStore.getCertificate(alias + "Certificate")
+            try {
+                return keyStore.getCertificate(alias + "Certificate")
+            }
+            catch (e: KeyStoreException) {
+                Log.w(TAG, "Failed to get certificate from a keystore", e)
+                return null
+            }
         }
 
     // Get identity public key

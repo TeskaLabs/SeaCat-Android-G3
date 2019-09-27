@@ -111,6 +111,7 @@ class Identity(private val seacat: SeaCat) {
                 MiniASN1.DER.BIT_STRING(public_key_encoded.copyOfRange(public_key_encoded.size-65, public_key_encoded.size))
             )),
             MiniASN1.DER.SEQUENCE_OF(arrayOf( // Parameters
+                //TODO: "os": "android"
                 //TODO: From BuildConfig, add BUILD_TYPE, FLAVOR, VERSION_CODE, VERSION_NAME
                 // See https://stackoverflow.com/questions/23431354/how-to-get-the-build-variant-at-runtime-in-android-studio
             ))

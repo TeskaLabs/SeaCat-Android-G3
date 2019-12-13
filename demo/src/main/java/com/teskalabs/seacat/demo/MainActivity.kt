@@ -1,12 +1,11 @@
 package com.teskalabs.seacat.demo
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.teskalabs.seacat.SeaCat
-
-import java.net.URL
-import javax.net.ssl.HttpsURLConnection
 
 
 class MainActivity : AppCompatActivity() {
@@ -15,14 +14,35 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Thread({
-            val url = URL("https://gw01.seacat.io/")
-            val connection = url.openConnection() as HttpsURLConnection
-            connection.setSSLSocketFactory((application as KeyoteDemoApp).seacat.sslContext.socketFactory)
+//        Thread({
+//            val url = URL("https://gw01.seacat.io/")
+//            val connection = url.openConnection() as HttpsURLConnection
+//            connection.setSSLSocketFactory((application as KeyoteDemoApp).seacat.sslContext.socketFactory)
+//
+//            val istream = connection.getInputStream()
+//            val x = istream.readBytes()
+//            Log.i(SeaCat.TAG, ">>>" + x.toString())
+//        }).start()
+    }
 
-            val istream = connection.getInputStream()
-            val x = istream.readBytes()
-            Log.i(SeaCat.TAG, ">>>" + x.toString())
-        }).start()
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+
+            R.id.action_reset_identity -> {
+                (application as KeyoteDemoApp).seacat.identity.reset()
+                Toast.makeText(applicationContext, "Identity reset!", Toast.LENGTH_LONG).show()
+                startActivity(Intent(this@MainActivity, SplashActivity::class.java))
+                finish()
+                return true
+            }
+        }
+
+        return super.onOptionsItemSelected(item)
     }
 }

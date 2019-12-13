@@ -31,8 +31,11 @@ class Identity(private val seacat: SeaCat) {
     private val alias = "SeaCatIdentity"
 
     init {
-        if (!load()) { enroll() }
-        else check()
+        if (!load()) {
+            seacat.controller.enroll(seacat)
+        } else {
+            check()
+        }
     }
 
 
@@ -54,16 +57,16 @@ class Identity(private val seacat: SeaCat) {
 
 
     // Generate a new identity
-    private fun enroll() {
+    fun enroll(attributes: Map<String, String> = mapOf()) {
         reset()
         val keypair = generate(seacat.context, false)
-        val cr = buildCertificateRequest(keypair)
+        val cr = buildCertificateRequest(keypair, attributes)
         enrollCertificateRequest(cr)
     }
 
 
     // Remove the identity (
-    private fun reset() {
+    fun reset() {
         keyStore.deleteEntry(alias)
         keyStore.deleteEntry(alias + "Certificate")
 
@@ -83,7 +86,7 @@ class Identity(private val seacat: SeaCat) {
 
 
     // Build a certificate request by a freshly generated keypair
-    private fun buildCertificateRequest(keypair: KeyPair): ByteArray {
+    private fun buildCertificateRequest(keypair: KeyPair, attributes: Map<String, String>): ByteArray {
 
         // Public key will added to a request in a DER format
         val public_key_encoded = keypair.public.getEncoded()
@@ -96,6 +99,18 @@ class Identity(private val seacat: SeaCat) {
 
         //TODO: Validate that public_key_encoded is valid SubjectPublicKeyInfo for my key
         // That is basically done by checking if the beginning of the public_key_encoded is an ByteArray with a ASN.1 content (fixed, could be hardcoded)
+
+        val transformed_attributes = mutableListOf( // Attributes
+            MiniASN1.DER.IA5String("OS"), MiniASN1.DER.OCTET_STRING("android".toByteArray())
+            //TODO: From BuildConfig, add BUILD_TYPE, FLAVOR, VERSION_CODE, VERSION_NAME
+            // See https://stackoverflow.com/questions/23431354/how-to-get-the-build-variant-at-runtime-in-android-studio
+        )
+
+        for ((k, v) in attributes) {
+            transformed_attributes.add(MiniASN1.DER.IA5String(k))
+            transformed_attributes.add(MiniASN1.DER.OCTET_STRING(v.toByteArray()))
+        }
+
 
         // Build a request body that will be signed (to-be-signed)
         var tbsRequest = MiniASN1.DER.SEQUENCE(arrayOf(
@@ -110,11 +125,8 @@ class Identity(private val seacat: SeaCat) {
                 )),
                 MiniASN1.DER.BIT_STRING(public_key_encoded.copyOfRange(public_key_encoded.size-65, public_key_encoded.size))
             )),
-            MiniASN1.DER.SEQUENCE_OF(arrayOf( // Parameters
-                //TODO: "os": "android"
-                //TODO: From BuildConfig, add BUILD_TYPE, FLAVOR, VERSION_CODE, VERSION_NAME
-                // See https://stackoverflow.com/questions/23431354/how-to-get-the-build-variant-at-runtime-in-android-studio
-            ))
+            //MiniASN1.DER.SEQUENCE_OF(transformed_attributes.toTypedArray())
+            MiniASN1.DER.SEQUENCE_OF(arrayOf())
         ))
         tbsRequest = byteArrayOf(0xA0.toByte()) + tbsRequest.copyOfRange(1, tbsRequest.size)
 
@@ -167,6 +179,8 @@ class Identity(private val seacat: SeaCat) {
                 return@Callable
             }
 
+            //TODO: Check Content-Type ... a certificate or JSON
+
             val certificate = SeaCat.certificateFactory.generateCertificate(connection.inputStream)
             keyStore.setCertificateEntry(alias + "Certificate", certificate)
 
@@ -216,7 +230,8 @@ class Identity(private val seacat: SeaCat) {
     // Check if the identity private key is available
     private fun privateKeyExists(): Boolean {
         try {
-            keyStore.getKey(alias, null) as PrivateKey
+            val key = keyStore.getKey(alias, null)
+            if (key == null) return false
         } catch (e: GeneralSecurityException) {
             //Log.w(SeaCatInternals.L, "Failed to validate that the " + this.alias + " key exists:", e)
             return false
@@ -239,7 +254,7 @@ class Identity(private val seacat: SeaCat) {
 
     ///
 
-    // Generate a private and pulic key for an identity
+    // Generate a private and public key for an identity
     fun generate(context: Context, requireUserAuth: Boolean): KeyPair {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {

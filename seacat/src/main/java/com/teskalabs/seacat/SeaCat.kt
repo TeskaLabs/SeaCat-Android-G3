@@ -13,7 +13,11 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509KeyManager
 import javax.net.ssl.X509TrustManager
 
-class SeaCat(internal val context: Context, internal val apiURL: String) {
+class SeaCat(
+    internal val context: Context,
+    internal val apiURL: String,
+    internal val controller: Controller = Controller()
+) {
 
     companion object {
         internal val certificateFactory = CertificateFactory.getInstance("X.509")

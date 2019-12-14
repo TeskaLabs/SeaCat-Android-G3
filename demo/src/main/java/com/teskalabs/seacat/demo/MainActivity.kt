@@ -34,9 +34,9 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
 
-            R.id.action_reset_identity -> {
-                (application as KeyoteDemoApp).seacat.identity.reset()
-                Toast.makeText(applicationContext, "Identity reset!", Toast.LENGTH_LONG).show()
+            R.id.action_remove_identity -> {
+                (application as KeyoteDemoApp).seacat.identity.remove()
+                Toast.makeText(applicationContext, "Identity has been removed!", Toast.LENGTH_LONG).show()
                 startActivity(Intent(this@MainActivity, SplashActivity::class.java))
                 finish()
                 return true

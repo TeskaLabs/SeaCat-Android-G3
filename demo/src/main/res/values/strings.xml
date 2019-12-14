@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Demo</string>
-    <string name="reset_identity">Reset Identity</string>
+    <string name="remove_identity">Remove my identity</string>
     <string name="splash_screen">Splash screen</string>
 </resources>

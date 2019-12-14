@@ -26,14 +26,25 @@ class SeaCat(
         val TAG = "SeaCat"
 
         const val CATEGORY_SEACAT = "com.teskalabs.seacat.intent.category.SEACAT"
-        const val ACTION_IDENTITY_ESTABLISHED = "com.teskalabs.seacat.intent.action.IDENTITY_ESTABLISHED"
-        const val ACTION_IDENTITY_RESET = "com.teskalabs.seacat.intent.action.IDENTITY_RESET"
+        const val ACTION_IDENTITY_ENROLLED = "com.teskalabs.seacat.intent.action.IDENTITY_ENROLLED"
+        const val ACTION_IDENTITY_REMOVED = "com.teskalabs.seacat.intent.action.IDENTITY_REMOVED"
     }
 
     internal val broadcastManager = LocalBroadcastManager.getInstance(context)
 
     val identity = Identity(this)
     val peers = PeerProvider(this)
+
+    init {
+
+        // Initialize the identity
+        if (identity.load()) {
+            identity.verify()
+        } else {
+            controller.enroll(this)
+        }
+
+    }
 
     val sslContext: SSLContext
         get () {

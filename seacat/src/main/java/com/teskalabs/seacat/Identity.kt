@@ -30,18 +30,9 @@ class Identity(private val seacat: SeaCat) {
     private val TAG = "Identity"
     private val alias = "SeaCatIdentity"
 
-    init {
-        if (!load()) {
-            seacat.controller.enroll(seacat)
-        } else {
-            check()
-        }
-    }
-
-
     // Load an identity
     // returns false, if identity failed to load
-    private fun load(): Boolean {
+    internal fun load(): Boolean {
         if (certificate == null) {
             return false
         }
@@ -50,15 +41,13 @@ class Identity(private val seacat: SeaCat) {
             return false
         }
 
-        check()
-
-        return true
+        return verify()
     }
 
 
     // Generate a new identity
     fun enroll(attributes: Map<String, String> = mapOf()) {
-        reset()
+        remove()
         val keypair = generate(seacat.context, false)
         val cr = buildCertificateRequest(keypair, attributes)
         enrollCertificateRequest(cr)
@@ -66,22 +55,24 @@ class Identity(private val seacat: SeaCat) {
 
 
     // Remove the identity (
-    fun reset() {
+    fun remove() {
         keyStore.deleteEntry(alias)
         keyStore.deleteEntry(alias + "Certificate")
 
         // There is a new identity now, broadcast it
         val intent = Intent()
         intent.addCategory(SeaCat.CATEGORY_SEACAT)
-        intent.action = SeaCat.ACTION_IDENTITY_RESET
+        intent.action = SeaCat.ACTION_IDENTITY_REMOVED
         seacat.broadcastManager.sendBroadcast(intent)
 
     }
 
 
+
     // Check validity of the identity certificate
-    private fun check() {
+    internal fun verify(): Boolean {
         //TODO: This ...
+        return true
     }
 
 
@@ -101,16 +92,22 @@ class Identity(private val seacat: SeaCat) {
         // That is basically done by checking if the beginning of the public_key_encoded is an ByteArray with a ASN.1 content (fixed, could be hardcoded)
 
         val transformed_attributes = mutableListOf( // Attributes
-            MiniASN1.DER.IA5String("OS"), MiniASN1.DER.OCTET_STRING("android".toByteArray())
+            MiniASN1.DER.SEQUENCE(arrayOf(
+                MiniASN1.DER.IA5String("OS"),
+                MiniASN1.DER.IA5String("android")
+            ))
             //TODO: From BuildConfig, add BUILD_TYPE, FLAVOR, VERSION_CODE, VERSION_NAME
             // See https://stackoverflow.com/questions/23431354/how-to-get-the-build-variant-at-runtime-in-android-studio
         )
 
         for ((k, v) in attributes) {
-            transformed_attributes.add(MiniASN1.DER.IA5String(k))
-            transformed_attributes.add(MiniASN1.DER.OCTET_STRING(v.toByteArray()))
+            transformed_attributes.add(
+                MiniASN1.DER.SEQUENCE(arrayOf(
+                    MiniASN1.DER.IA5String(k),
+                    MiniASN1.DER.IA5String(v)
+                ))
+            )
         }
-
 
         // Build a request body that will be signed (to-be-signed)
         var tbsRequest = MiniASN1.DER.SEQUENCE(arrayOf(
@@ -125,8 +122,7 @@ class Identity(private val seacat: SeaCat) {
                 )),
                 MiniASN1.DER.BIT_STRING(public_key_encoded.copyOfRange(public_key_encoded.size-65, public_key_encoded.size))
             )),
-            //MiniASN1.DER.SEQUENCE_OF(transformed_attributes.toTypedArray())
-            MiniASN1.DER.SEQUENCE_OF(arrayOf())
+            MiniASN1.DER.SEQUENCE_OF(transformed_attributes.toTypedArray())
         ))
         tbsRequest = byteArrayOf(0xA0.toByte()) + tbsRequest.copyOfRange(1, tbsRequest.size)
 
@@ -189,7 +185,7 @@ class Identity(private val seacat: SeaCat) {
             // There is a new identity now, broadcast it
             val intent = Intent()
             intent.addCategory(SeaCat.CATEGORY_SEACAT)
-            intent.action = SeaCat.ACTION_IDENTITY_ESTABLISHED
+            intent.action = SeaCat.ACTION_IDENTITY_ENROLLED
             seacat.broadcastManager.sendBroadcast(intent)
 
         } )

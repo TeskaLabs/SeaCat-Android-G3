@@ -3,6 +3,6 @@
         xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-            android:id="@+id/action_reset_identity"
-            android:title="@string/reset_identity" />
+            android:id="@+id/action_remove_identity"
+            android:title="@string/remove_identity" />
 </menu>

@@ -35,7 +35,7 @@ import java.security.SecureRandom;
  * String pw_hash = BCrypt.hashpw(plain_password, BCrypt.gensalt()); <br />
  * </code>
  * <p>
- * To check whether a plaintext password matches one that has been
+ * To verify whether a plaintext password matches one that has been
  * hashed previously, use the checkpw method:
  * <p>
  * <code>

@@ -5,7 +5,7 @@ import com.teskalabs.seacat.SeaCat
 
 class CustomSeaCatController : Controller() {
 
-    override fun enroll(seacat: SeaCat) {
+    override fun onIntialEnrollmentRequested(seacat: SeaCat) {
     }
 
 }

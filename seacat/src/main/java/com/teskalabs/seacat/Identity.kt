@@ -1,26 +1,21 @@
 package com.teskalabs.seacat
 
-import android.annotation.TargetApi
-import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.security.KeyPairGeneratorSpec
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
 import android.util.Log
 import com.teskalabs.seacat.miniasn1.MiniASN1
 import com.teskalabs.seacat.misc.Base32
+import com.teskalabs.seacat.misc.generateECKeyPair
 import java.io.DataOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.*
 import java.security.cert.Certificate
+import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.Callable
 
-//TODO: Renewal of the identity certificate
-//TODO: Revocation of the identity certificate
+//TODO: Automated renewal of the identity certificate
 
 
 // Identity is a basically combination of certificate + public key + private key
@@ -30,6 +25,16 @@ class Identity(private val seacat: SeaCat) {
     private val TAG = "Identity"
     private val alias = "SeaCatIdentity"
 
+
+    fun renew() {
+        if (certificate == null) {
+            seacat.controller.onIntialEnrollmentRequested(seacat)
+        } else {
+            seacat.controller.onReenrollmentRequested(seacat)
+        }
+    }
+
+
     // Load an identity
     // returns false, if identity failed to load
     internal fun load(): Boolean {
@@ -37,7 +42,7 @@ class Identity(private val seacat: SeaCat) {
             return false
         }
 
-        if (!privateKeyExists()) {
+        if (!doesPrivateKeyExists()) {
             return false
         }
 
@@ -45,28 +50,30 @@ class Identity(private val seacat: SeaCat) {
     }
 
 
-    // Generate a new identity
+    // Enroll my identity (initial enrollment of re-enrollment aka renewal)
     fun enroll(attributes: Map<String, String> = mapOf()) {
-        remove()
-        val keypair = generate(seacat.context, false)
-        val cr = buildCertificateRequest(keypair, attributes)
-        enrollCertificateRequest(cr)
+        // Get an existing identity keypair or generate a new one
+        val keypair= keypair ?:
+            generateECKeyPair(seacat.context, alias,false)
+        enrollCertificateRequest(
+            buildCertificateRequest(keypair, attributes)
+        )
     }
 
 
-    // Remove the identity (
-    fun remove() {
+    // Revoke the identity (
+    fun revoke() {
         keyStore.deleteEntry(alias)
         keyStore.deleteEntry(alias + "Certificate")
 
         // There is a new identity now, broadcast it
         val intent = Intent()
         intent.addCategory(SeaCat.CATEGORY_SEACAT)
-        intent.action = SeaCat.ACTION_IDENTITY_REMOVED
+        intent.action = SeaCat.ACTION_IDENTITY_REVOKED
         seacat.broadcastManager.sendBroadcast(intent)
 
+        //TODO: Send a revocation info to a SeaCat PKI
     }
-
 
 
     // Check validity of the identity certificate
@@ -195,10 +202,10 @@ class Identity(private val seacat: SeaCat) {
     ///
 
     // Get identity certificate
-    val certificate: Certificate?
+    val certificate: X509Certificate?
         get() {
             try {
-                return keyStore.getCertificate(alias + "Certificate")
+                return keyStore.getCertificate(alias + "Certificate") as X509Certificate?
             }
             catch (e: KeyStoreException) {
                 Log.w(TAG, "Failed to get certificate from a keystore", e)
@@ -210,6 +217,20 @@ class Identity(private val seacat: SeaCat) {
     val publicKey: PublicKey?
         get() { return certificate?.getPublicKey() }
 
+
+    // Get a private key
+    val privateKey: PrivateKey?
+        get() {
+            return keyStore.getKey(alias, null) as PrivateKey?
+        }
+
+    val keypair: KeyPair?
+        get() {
+            val private_key = privateKey ?: return null
+            val public_key = publicKey ?: return null
+            return KeyPair(public_key, private_key)
+        }
+
     // Get Identity string
     override fun toString(): String
     {
@@ -217,14 +238,8 @@ class Identity(private val seacat: SeaCat) {
         return extractIdentity(cert) ?: ""
     }
 
-    // Get a private key
-    val privateKey: PrivateKey?
-        get() {
-            return keyStore.getKey(alias, null) as PrivateKey
-        }
-
     // Check if the identity private key is available
-    private fun privateKeyExists(): Boolean {
+    private fun doesPrivateKeyExists(): Boolean {
         try {
             val key = keyStore.getKey(alias, null)
             if (key == null) return false
@@ -246,80 +261,10 @@ class Identity(private val seacat: SeaCat) {
             }
             return keyStore
         }
-
-
-    ///
-
-    // Generate a private and public key for an identity
-    fun generate(context: Context, requireUserAuth: Boolean): KeyPair {
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return generate_api19_22(context, requireUserAuth)
-        } else {
-            return generate_api23(requireUserAuth)
-        }
-
-
-    }
-
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    private fun generate_api19_22(context: Context, requireUserAuth: Boolean): KeyPair {
-        // https://stackoverflow.com/questions/50130448/generate-elliptic-curve-keypair-via-keystore-on-api-level-23
-
-        val applicationContext = context.getApplicationContext()
-
-        val builder = KeyPairGeneratorSpec.Builder(applicationContext)
-        builder.setAlias(alias)
-        builder.setKeySize(256)
-        builder.setKeyType("EC")
-//        builder.setStartDate(valid_from)
-//        builder.setEndDate(valid_to)
-//        builder.setSerialNumber(BigInteger.valueOf(serialNumber))
-//        builder.setSubject(subjectPrincipal)
-
-        if (requireUserAuth) {
-            builder.setEncryptionRequired()
-        }
-
-        val kpg = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore")
-        kpg.initialize(builder.build())
-
-        val kp = kpg.generateKeyPair()
-        return kp
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    private fun generate_api23(requireUserAuth: Boolean): KeyPair {
-
-        val parameterSpec: KeyGenParameterSpec = KeyGenParameterSpec.Builder(
-            alias,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT or KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
-        ).run {
-            setDigests(
-                KeyProperties.DIGEST_NONE, // TLS/SSL stacks generate the digest(s) themselves
-                KeyProperties.DIGEST_SHA256,
-                KeyProperties.DIGEST_SHA512
-            )
-            if (requireUserAuth) {
-                setUserAuthenticationRequired(true)
-                setUserAuthenticationValidityDurationSeconds(5)
-            }
-            build()
-        }
-
-        val kpg = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore")
-        kpg.initialize(parameterSpec)
-
-        val kp = kpg.generateKeyPair()
-
-        return kp
-    }
-
 }
 
 
-fun extractIdentity(publicKey: PublicKey): String? {
+private fun extractIdentity(publicKey: PublicKey): String? {
     val der = publicKey.encoded
 
     // For an elliptic curve public key, the format follows the ANSI X9.63 standard using a byte string of 04 || X || Y.
@@ -333,6 +278,6 @@ fun extractIdentity(publicKey: PublicKey): String? {
 }
 
 // Extract the identity string from a certificate
-fun extractIdentity(certificate: Certificate): String? {
+private fun extractIdentity(certificate: Certificate): String? {
     return extractIdentity(certificate.publicKey)
 }

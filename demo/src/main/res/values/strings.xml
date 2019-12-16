@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Demo</string>
-    <string name="remove_identity">Remove my identity</string>
     <string name="splash_screen">Splash screen</string>
+    <string name="renew_my_identity">Renew my identity</string>
+    <string name="revoke_my_identity">Revoke my identity</string>
 </resources>

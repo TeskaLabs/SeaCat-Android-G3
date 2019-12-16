@@ -8,6 +8,7 @@ import java.security.Principal
 import java.security.PrivateKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
+import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509KeyManager
@@ -27,10 +28,10 @@ class SeaCat(
 
         const val CATEGORY_SEACAT = "com.teskalabs.seacat.intent.category.SEACAT"
         const val ACTION_IDENTITY_ENROLLED = "com.teskalabs.seacat.intent.action.IDENTITY_ENROLLED"
-        const val ACTION_IDENTITY_REMOVED = "com.teskalabs.seacat.intent.action.IDENTITY_REMOVED"
+        const val ACTION_IDENTITY_REVOKED = "com.teskalabs.seacat.intent.action.IDENTITY_REVOKED"
     }
 
-    internal val broadcastManager = LocalBroadcastManager.getInstance(context)
+    val broadcastManager = LocalBroadcastManager.getInstance(context)
 
     val identity = Identity(this)
     val peers = PeerProvider(this)
@@ -38,10 +39,13 @@ class SeaCat(
     init {
 
         // Initialize the identity
+        // The load has to happen in the synchronous way so that we indicate consistently if the identity is usable or nor
         if (identity.load()) {
             identity.verify()
         } else {
-            controller.enroll(this)
+            executor.submit(Callable {
+                identity.renew()
+            })
         }
 
     }

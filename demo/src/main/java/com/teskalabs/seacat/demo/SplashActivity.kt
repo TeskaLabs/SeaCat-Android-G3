@@ -38,7 +38,7 @@ class SplashActivity : AppCompatActivity() {
     fun comenceEnroll() {
         val attributes = mapOf(
             "aaa" to "bbb",
-            "ccc" to "ddd"
+            "ccc" to "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mollis consequat pulvinar." // Long item in the CR attributes
         )
         (application as KeyoteDemoApp).seacat.identity.enroll(attributes)
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.net.Socket
+import java.security.KeyStore
 import java.security.Principal
 import java.security.PrivateKey
 import java.security.cert.CertificateFactory
@@ -11,10 +12,11 @@ import java.security.cert.X509Certificate
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509KeyManager
-import javax.net.ssl.X509TrustManager
 
-class SeaCat(
+open class SeaCat(
     internal val context: Context,
     internal val apiURL: String,
     internal val controller: Controller = Controller()
@@ -36,6 +38,9 @@ class SeaCat(
     val identity = Identity(this)
     val peers = PeerProvider(this)
 
+    /** Array of trust managers */
+    val trustManagers : Array<TrustManager>
+
     init {
 
         // Initialize the identity
@@ -48,6 +53,8 @@ class SeaCat(
             })
         }
 
+        // Initialize array of trust managers
+        trustManagers = onCreateTrustManagers()
     }
 
     val sslContext: SSLContext
@@ -96,25 +103,32 @@ class SeaCat(
                     }
 
                 ),
-                arrayOf(object : X509TrustManager {
-
-                    override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-                        Log.i(TAG,"checkServerTrusted " + chain)
-                    }
-
-                    override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
-                        TODO("not implemented")
-                    }
-
-                    override fun getAcceptedIssuers(): Array<X509Certificate> {
-                        TODO("not implemented")
-                    }
-
-                }),
+                trustManagers,
                 null
             )
 
             return context
         }
 
+    /**
+     * Called when trust managers array should be initialized.
+     *
+     *  By default there is only one trust manager
+     *  returned that is initialized with the default
+     *  Android CA store.
+     *
+     *  You can override this method and return your own
+     *  array of [TrustManager]s to provide trust to certificates
+     *  issued by your company or for certificate pinning.
+     */
+    protected fun onCreateTrustManagers() : Array<TrustManager> {
+        val trustManagerFactory : TrustManagerFactory =
+            TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+        val trustedStore = KeyStore.getInstance("AndroidCAStore")
+
+        trustedStore.load(null)
+        trustManagerFactory.init(trustedStore)
+
+        return trustManagerFactory.trustManagers
+    }
 }

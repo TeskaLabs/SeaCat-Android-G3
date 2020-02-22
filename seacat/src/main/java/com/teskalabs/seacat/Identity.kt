@@ -12,7 +12,7 @@ import java.net.URL
 import java.security.*
 import java.security.cert.Certificate
 import java.security.cert.X509Certificate
-import java.util.*
+import java.util.Calendar
 import java.util.concurrent.Callable
 
 //TODO: Automated renewal of the identity certificate

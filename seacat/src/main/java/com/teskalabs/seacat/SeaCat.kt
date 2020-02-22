@@ -81,7 +81,7 @@ class SeaCat(
                             assert(identityString.equals(alias))
 
                             return arrayOf(
-                                identity.certificate!! as X509Certificate//,
+                                identity.certificate!!//,
 //                                intermediateCA as X509Certificate
                             )
                         }

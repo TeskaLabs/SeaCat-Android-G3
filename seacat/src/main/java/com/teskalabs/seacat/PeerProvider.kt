@@ -2,7 +2,6 @@ package com.teskalabs.seacat
 
 import android.util.Log
 import java.io.File
-import java.io.FileFilter
 import java.io.FileNotFoundException
 import java.net.HttpURLConnection
 import java.net.URL

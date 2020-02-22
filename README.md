@@ -58,8 +58,10 @@ We assume that your Android project is managed by Git version control system.
 
 		override fun onCreate() {
 			...
-			seacat = SeaCat(this, "<URL of your SeaCat PKI>")
+			seacat = SeaCat(this, "https://pki.seacat.io/seacat-demo/seacat")
 			...
 		}
 	}
 	```
+_Remark: `https://pki.seacat.io/seacat-demo/seacat` is a public demo instance of the SeaCat PKI._
+

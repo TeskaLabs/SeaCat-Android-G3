@@ -11,7 +11,7 @@ class KeyoteDemoApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        seacat = SeaCat(this, "http://10.0.2.2:8080/seacat/seacat", seaCatController)
+        seacat = SeaCat(this, "https://pki.seacat.io/seacat-demo/seacat", seaCatController)
     }
 
 }

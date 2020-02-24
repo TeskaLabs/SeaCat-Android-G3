@@ -11,6 +11,7 @@ import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509KeyManager
+import javax.net.ssl.X509TrustManager
 
 class SeaCat(
     internal val context: Context,
@@ -100,4 +101,12 @@ class SeaCat(
 
             return context
         }
+
+
+    val trustManager: X509TrustManager
+        get() {
+            val trustManagers = controller.createTrustManagers()
+            return trustManagers[0] as X509TrustManager
+        }
+
 }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Handler
 import android.util.Log
 import androidx.core.app.ActivityCompat
@@ -45,22 +46,33 @@ final class Biometrics(val context: Context, val uiHandler: Handler) {
     }
 
     fun getBiometryState(): State {
-        return if (!fingerprintManager.isHardwareDetected()) {
+        if (!fingerprintManager.isHardwareDetected()) {
             // Device doesn't support fingerprint authentication
-            State.DEVICE_NOT_SUPPORTED
-        } else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
-            State.PERMISSION_NOT_GRANTED
-        } else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_BIOMETRIC) != PackageManager.PERMISSION_GRANTED) {
-            State.PERMISSION_NOT_GRANTED
-        } else if (!keyguardManager.isKeyguardSecure()) {
-            State.KEYGUARD_NOT_SECURE
-        } else if (!fingerprintManager.hasEnrolledFingerprints()) {
-            // User hasn't enrolled any fingerprints to authenticate with
-            State.FINGERPRINTS_NOT_ENROLLED
-        } else {
-            // Everything is ready for fingerprint authentication
-            State.READY
+            return State.DEVICE_NOT_SUPPORTED
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (!keyguardManager.isKeyguardSecure()) {
+                return State.KEYGUARD_NOT_SECURE
+            }
+        }
+
+        if (!fingerprintManager.hasEnrolledFingerprints()) {
+            // These are checks that try to find out details about why biometry is not working
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+                return State.PERMISSION_NOT_GRANTED
+            }
+
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_BIOMETRIC) != PackageManager.PERMISSION_GRANTED) {
+                return State.PERMISSION_NOT_GRANTED
+            }
+
+            // User hasn't enrolled any fingerprints to authenticate with
+            return State.FINGERPRINTS_NOT_ENROLLED
+        }
+
+        // Everything is ready for fingerprint authentication
+        return State.READY
     }
 
     /**

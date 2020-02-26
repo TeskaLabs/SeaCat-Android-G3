@@ -8,6 +8,7 @@ import java.security.PrivateKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509KeyManager
@@ -107,6 +108,11 @@ class SeaCat(
         get() {
             val trustManagers = controller.createTrustManagers()
             return trustManagers[0] as X509TrustManager
+        }
+
+    val executorService: ExecutorService
+        get() {
+            return executor
         }
 
 }

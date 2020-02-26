@@ -19,7 +19,12 @@ class BiometricsKey(private val biometrics: Biometrics, private val keyName: Str
 
     private val TAG = BiometricsKey::class.java.simpleName
 
+    @Volatile
+    private var generating: Boolean = false
+
     fun getKeyPair(): KeyPair? {
+        if (generating) return null
+
         val keyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
         if (keyStore.containsAlias(keyName)) {
@@ -40,30 +45,37 @@ class BiometricsKey(private val biometrics: Biometrics, private val keyName: Str
             Log.w(TAG, "Biometrics is not available, cannot generate the master key, will retry in 5 sec.")
         }
 
-        val keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
+        generating = true
+        try {
 
-        val builder = KeyGenParameterSpec.Builder(
-                keyName,
-                KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY or KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-                .setKeySize(4096)
-                .setDigests(
-                        KeyProperties.DIGEST_SHA256,
-                        KeyProperties.DIGEST_SHA384,
-                        KeyProperties.DIGEST_SHA512
-                )
-                // Require the user to authenticate with a biometric to authorize every use of the key
-                .setUserAuthenticationRequired(true)
-                .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+            val keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore")
 
-        // Generated keys will be invalidated if the biometric templates are added more to user device
-        if (Build.VERSION.SDK_INT >= 24) {
-            builder.setInvalidatedByBiometricEnrollment(true)
+            val builder = KeyGenParameterSpec.Builder(
+                    keyName,
+                    KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY or KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            )
+                    .setKeySize(4096)
+                    .setDigests(
+                            KeyProperties.DIGEST_SHA256,
+                            KeyProperties.DIGEST_SHA384,
+                            KeyProperties.DIGEST_SHA512
+                    )
+                    // Require the user to authenticate with a biometric to authorize every use of the key
+                    .setUserAuthenticationRequired(true)
+                    .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
+
+            // Generated keys will be invalidated if the biometric templates are added more to user device
+            if (Build.VERSION.SDK_INT >= 24) {
+                builder.setInvalidatedByBiometricEnrollment(true)
+            }
+
+            keyPairGenerator.initialize(builder.build())
+            keyPairGenerator.generateKeyPair()
         }
-
-        keyPairGenerator.initialize(builder.build())
-        keyPairGenerator.generateKeyPair()
+        finally {
+            generating = false
+        }
 
         //TODO: https://developer.android.com/training/articles/security-key-attestation
     }

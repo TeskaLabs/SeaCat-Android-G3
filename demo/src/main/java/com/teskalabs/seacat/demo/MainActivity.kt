@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    fun update() {
+    private fun update() {
         identityTV.text = "Identity: %s".format(SeaCat.identity.toString())
 
         val cert= SeaCat.identity.certificate
@@ -94,7 +94,9 @@ class MainActivity : AppCompatActivity() {
     fun onRestCallClicked(view: android.view.View) {
         Thread({
             val url = URL("https://zscanner.seacat.io/medicalc/v3.1/departments")
+
             val connection = url.openConnection() as HttpsURLConnection
+            // Configure the HTTPS connection to use SeaCat SSL context
             connection.setSSLSocketFactory(SeaCat.sslContext.socketFactory)
 
             val istream = connection.getInputStream()

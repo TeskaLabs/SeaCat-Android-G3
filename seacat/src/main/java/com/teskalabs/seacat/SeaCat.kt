@@ -22,27 +22,33 @@ class SeaCat(
 
     companion object {
 
+        @JvmStatic
         val TAG = "SeaCat"
 
         const val CATEGORY_SEACAT = "com.teskalabs.seacat.intent.category.SEACAT"
         const val ACTION_IDENTITY_ENROLLED = "com.teskalabs.seacat.intent.action.IDENTITY_ENROLLED"
         const val ACTION_IDENTITY_REVOKED = "com.teskalabs.seacat.intent.action.IDENTITY_REVOKED"
 
+        @JvmStatic
+        lateinit var instance: SeaCat
+            private set
 
-        internal lateinit var main: SeaCat
-
+        @JvmStatic
         fun init(context: Context, apiURL: String) {
-            main = SeaCat(context, apiURL)
+            instance = SeaCat(context, apiURL)
         }
 
         val broadcastManager: LocalBroadcastManager
-            get() { return main.broadcastManager }
+            get() { return instance.broadcastManager }
 
         val identity: Identity
-            get() {  return main.identity }
+            get() {  return instance.identity }
+
+        val ready: Boolean
+            get() { return instance.ready }
 
         val sslContext: SSLContext
-            get() {  return main.sslContext }
+            get() {  return instance.sslContext }
 
 
         internal val certificateFactory = CertificateFactory.getInstance("X.509")
@@ -54,6 +60,8 @@ class SeaCat(
     val identity = Identity(this)
     val peers = PeerProvider(this)
 
+    val ready: Boolean
+        get() { return identity.certificate != null }
 
     init {
 

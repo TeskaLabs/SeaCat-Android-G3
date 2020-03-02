@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import com.teskalabs.seacat.SeaCat
-import kotlinx.android.synthetic.main.activity_splash.*
 
 
 class SplashActivity : AppCompatActivity() {
@@ -18,15 +17,14 @@ class SplashActivity : AppCompatActivity() {
         setContentView(R.layout.activity_splash)
 
         timerRunnable = Runnable {
-            if (SeaCat.identity.certificate == null) {
-                handler.postDelayed(timerRunnable, 500)
-            } else {
+            if (SeaCat.ready) {
                 startActivity(Intent(this, MainActivity::class.java))
                 finish()
+            } else {
+                handler.postDelayed(timerRunnable, 500)
             }
         }
 
-        enrollButton.setOnClickListener { comenceEnroll() }
     }
 
     override fun onStart() {
@@ -34,14 +32,6 @@ class SplashActivity : AppCompatActivity() {
         handler.post(timerRunnable)
     }
 
-
-    fun comenceEnroll() {
-        val attributes = mapOf(
-            "aaa" to "bbb",
-            "ccc" to "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mollis consequat pulvinar." // Long item in the CR attributes
-        )
-        SeaCat.identity.enroll(attributes)
-    }
 
     override fun onBackPressed() {
         // Disable back button

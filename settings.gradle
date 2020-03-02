@@ -1,1 +1,1 @@
-include ':seacat', ':demo'
+include ':seacat', ':demo', ':demojava'

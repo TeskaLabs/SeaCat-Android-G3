@@ -28,7 +28,7 @@ class Identity(private val seacat: SeaCat) {
 
     fun renew() {
         if (certificate == null) {
-            seacat.controller.onIntialEnrollmentRequested(seacat)
+            seacat.controller.onInitialEnrollmentRequested(seacat)
         } else {
             seacat.controller.onReenrollmentRequested(seacat)
         }

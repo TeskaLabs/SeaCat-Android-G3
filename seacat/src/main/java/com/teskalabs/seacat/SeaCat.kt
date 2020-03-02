@@ -21,14 +21,32 @@ class SeaCat(
 ) {
 
     companion object {
-        internal val certificateFactory = CertificateFactory.getInstance("X.509")
-        internal val executor = Executors.newSingleThreadScheduledExecutor()
 
         val TAG = "SeaCat"
 
         const val CATEGORY_SEACAT = "com.teskalabs.seacat.intent.category.SEACAT"
         const val ACTION_IDENTITY_ENROLLED = "com.teskalabs.seacat.intent.action.IDENTITY_ENROLLED"
         const val ACTION_IDENTITY_REVOKED = "com.teskalabs.seacat.intent.action.IDENTITY_REVOKED"
+
+
+        internal lateinit var main: SeaCat
+
+        fun init(context: Context, apiURL: String) {
+            main = SeaCat(context, apiURL)
+        }
+
+        val broadcastManager: LocalBroadcastManager
+            get() { return main.broadcastManager }
+
+        val identity: Identity
+            get() {  return main.identity }
+
+        val sslContext: SSLContext
+            get() {  return main.sslContext }
+
+
+        internal val certificateFactory = CertificateFactory.getInstance("X.509")
+        internal val executor = Executors.newSingleThreadScheduledExecutor()
     }
 
     val broadcastManager = LocalBroadcastManager.getInstance(context)

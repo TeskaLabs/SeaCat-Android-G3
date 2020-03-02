@@ -6,7 +6,7 @@ import javax.net.ssl.TrustManagerFactory
 
 open class Controller {
 
-    open fun onIntialEnrollmentRequested(seacat: SeaCat) {
+    open fun onInitialEnrollmentRequested(seacat: SeaCat) {
         // You may decide to call seacat.identity.enroll() later, when you have more info
         seacat.identity.enroll()
     }

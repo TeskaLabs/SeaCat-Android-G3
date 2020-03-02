@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
+import com.teskalabs.seacat.SeaCat
 import kotlinx.android.synthetic.main.activity_splash.*
 
 
@@ -16,9 +17,8 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
 
-        val identity = (application as KeyoteDemoApp).seacat.identity
         timerRunnable = Runnable {
-            if (identity.certificate == null) {
+            if (SeaCat.identity.certificate == null) {
                 handler.postDelayed(timerRunnable, 500)
             } else {
                 startActivity(Intent(this, MainActivity::class.java))
@@ -40,7 +40,7 @@ class SplashActivity : AppCompatActivity() {
             "aaa" to "bbb",
             "ccc" to "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus mollis consequat pulvinar." // Long item in the CR attributes
         )
-        (application as KeyoteDemoApp).seacat.identity.enroll(attributes)
+        SeaCat.identity.enroll(attributes)
     }
 
     override fun onBackPressed() {

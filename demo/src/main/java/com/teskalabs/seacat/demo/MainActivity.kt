@@ -12,14 +12,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.teskalabs.seacat.SeaCat
 import kotlinx.android.synthetic.main.activity_main.*
+import java.net.URL
 import java.text.SimpleDateFormat
+import javax.net.ssl.HttpsURLConnection
 
 
 class MainActivity : AppCompatActivity() {
 
     val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            Log.w("ME", "BroadcastReceiver / onReceive")
             when (intent.action) {
                 SeaCat.ACTION_IDENTITY_ENROLLED -> update()
             }
@@ -29,16 +30,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-//        Thread({
-//            val url = URL("https://gw01.seacat.io/")
-//            val connection = url.openConnection() as HttpsURLConnection
-//            connection.setSSLSocketFactory((application as KeyoteDemoApp).seacat.sslContext.socketFactory)
-//
-//            val istream = connection.getInputStream()
-//            val x = istream.readBytes()
-//            Log.i(SeaCat.TAG, ">>>" + x.toString())
-//        }).start()
     }
 
 
@@ -54,11 +45,11 @@ class MainActivity : AppCompatActivity() {
         val intentFilter = IntentFilter()
         intentFilter.addCategory(SeaCat.CATEGORY_SEACAT)
         intentFilter.addAction(SeaCat.ACTION_IDENTITY_ENROLLED)
-        (application as KeyoteDemoApp).seacat.broadcastManager.registerReceiver(receiver, intentFilter)
+        SeaCat.broadcastManager.registerReceiver(receiver, intentFilter)
     }
 
     override fun onStop() {
-        (application as KeyoteDemoApp).seacat.broadcastManager.unregisterReceiver(receiver)
+        SeaCat.broadcastManager.unregisterReceiver(receiver)
         super.onStop()
     }
 
@@ -66,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         when (item?.itemId) {
 
             R.id.action_revoke_identity -> {
-                (application as KeyoteDemoApp).seacat.identity.revoke()
+                SeaCat.identity.revoke()
                 Toast.makeText(applicationContext, "Identity has been revoked!", Toast.LENGTH_LONG).show()
                 startActivity(Intent(this@MainActivity, SplashActivity::class.java))
                 finish()
@@ -74,7 +65,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.action_renew_identity -> {
-                (application as KeyoteDemoApp).seacat.identity.renew()
+                SeaCat.identity.renew()
             }
         }
 
@@ -82,10 +73,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun update() {
-        val seacat = (application as KeyoteDemoApp).seacat
-        identityTV.text = "Identity: %s".format(seacat.identity.toString())
+        identityTV.text = "Identity: %s".format(SeaCat.identity.toString())
 
-        val cert= seacat.identity.certificate
+        val cert= SeaCat.identity.certificate
         if (cert != null) {
             val format = SimpleDateFormat("dd.MMM yyyy HH:mm:ss")
 
@@ -100,4 +90,22 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+    fun onRestCallClicked(view: android.view.View) {
+        Thread({
+            val url = URL("https://zscanner.seacat.io/medicalc/v3.1/departments")
+            val connection = url.openConnection() as HttpsURLConnection
+            connection.setSSLSocketFactory(SeaCat.sslContext.socketFactory)
+
+            val istream = connection.getInputStream()
+            val bytes = istream.readBytes()
+
+            var result = ""
+            for (b in bytes) {
+                result += String.format("%02X", b)
+            }
+            Log.i(SeaCat.TAG, "Downloaded: " + result)
+        }).start()
+    }
+
 }

@@ -16,6 +16,18 @@ open class Controller {
         seacat.identity.enroll()
     }
 
+    open fun onAction(action: String) {
+        /* You may create an Intent here and broadcast it to the rest of the application
+
+        Sample:
+
+        val intent = Intent()
+        intent.addCategory("com.example.category.SEACAT")
+        intent.action = "com.example.intent.action." + action
+        broadcastManager.sendBroadcast(intent)
+         */
+    }
+
     /**
      * Called when trust managers array should be initialized.
      *

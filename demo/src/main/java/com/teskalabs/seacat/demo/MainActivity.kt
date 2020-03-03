@@ -1,9 +1,6 @@
 package com.teskalabs.seacat.demo
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -19,14 +16,6 @@ import javax.net.ssl.HttpsURLConnection
 
 class MainActivity : AppCompatActivity() {
 
-    val receiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                SeaCat.ACTION_IDENTITY_ENROLLED -> update()
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -41,20 +30,14 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         update()
-
-        val intentFilter = IntentFilter()
-        intentFilter.addCategory(SeaCat.CATEGORY_SEACAT)
-        intentFilter.addAction(SeaCat.ACTION_IDENTITY_ENROLLED)
-        SeaCat.broadcastManager.registerReceiver(receiver, intentFilter)
     }
 
     override fun onStop() {
-        SeaCat.broadcastManager.unregisterReceiver(receiver)
         super.onStop()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
 
             R.id.action_revoke_identity -> {
                 SeaCat.identity.revoke()

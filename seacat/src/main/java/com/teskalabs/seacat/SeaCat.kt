@@ -1,7 +1,6 @@
 package com.teskalabs.seacat
 
 import android.content.Context
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.net.Socket
 import java.security.Principal
 import java.security.PrivateKey
@@ -25,9 +24,8 @@ class SeaCat(
         @JvmStatic
         val TAG = "SeaCat"
 
-        const val CATEGORY_SEACAT = "com.teskalabs.seacat.intent.category.SEACAT"
-        const val ACTION_IDENTITY_ENROLLED = "com.teskalabs.seacat.intent.action.IDENTITY_ENROLLED"
-        const val ACTION_IDENTITY_REVOKED = "com.teskalabs.seacat.intent.action.IDENTITY_REVOKED"
+        const val ACTION_IDENTITY_ENROLLED = "IDENTITY_ENROLLED"
+        const val ACTION_IDENTITY_REVOKED = "IDENTITY_REVOKED"
 
         @JvmStatic
         lateinit var instance: SeaCat
@@ -37,9 +35,6 @@ class SeaCat(
         fun init(context: Context, apiURL: String) {
             instance = SeaCat(context, apiURL)
         }
-
-        val broadcastManager: LocalBroadcastManager
-            get() { return instance.broadcastManager }
 
         val identity: Identity
             get() {  return instance.identity }
@@ -54,8 +49,6 @@ class SeaCat(
         internal val certificateFactory = CertificateFactory.getInstance("X.509")
         internal val executor = Executors.newSingleThreadScheduledExecutor()
     }
-
-    val broadcastManager = LocalBroadcastManager.getInstance(context)
 
     val identity = Identity(this)
     val peers = PeerProvider(this)

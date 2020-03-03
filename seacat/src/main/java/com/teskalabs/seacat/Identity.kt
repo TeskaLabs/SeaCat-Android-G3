@@ -66,11 +66,7 @@ class Identity(private val seacat: SeaCat) {
         keyStore.deleteEntry(alias)
         keyStore.deleteEntry(alias + "Certificate")
 
-        // There is a new identity now, broadcast it
-        val intent = Intent()
-        intent.addCategory(SeaCat.CATEGORY_SEACAT)
-        intent.action = SeaCat.ACTION_IDENTITY_REVOKED
-        seacat.broadcastManager.sendBroadcast(intent)
+        seacat.controller.onAction(SeaCat.ACTION_IDENTITY_REVOKED)
 
         //TODO: Send a revocation info to a SeaCat PKI
     }
@@ -189,12 +185,7 @@ class Identity(private val seacat: SeaCat) {
 
             load()
 
-            // There is a new identity now, broadcast it
-            val intent = Intent()
-            intent.addCategory(SeaCat.CATEGORY_SEACAT)
-            intent.action = SeaCat.ACTION_IDENTITY_ENROLLED
-            seacat.broadcastManager.sendBroadcast(intent)
-
+            seacat.controller.onAction(SeaCat.ACTION_IDENTITY_ENROLLED)
         } )
     }
 

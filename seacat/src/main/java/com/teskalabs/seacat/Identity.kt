@@ -14,6 +14,7 @@ import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.Callable
 
+//TODO: Ensure that verify() is called periodically b/c it starts identity certificate renew process if needed
 
 // Identity is a basically combination of certificate + public key + private key
 // It is used to represent a current application instance in a cryptography strong manner

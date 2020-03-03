@@ -1,6 +1,5 @@
 package com.teskalabs.seacat
 
-import android.content.Intent
 import android.util.Log
 import com.teskalabs.seacat.miniasn1.MiniASN1
 import com.teskalabs.seacat.misc.Base32
@@ -12,10 +11,8 @@ import java.net.URL
 import java.security.*
 import java.security.cert.Certificate
 import java.security.cert.X509Certificate
-import java.util.Calendar
+import java.util.*
 import java.util.concurrent.Callable
-
-//TODO: Automated renewal of the identity certificate
 
 
 // Identity is a basically combination of certificate + public key + private key
@@ -27,6 +24,7 @@ class Identity(private val seacat: SeaCat) {
 
 
     fun renew() {
+        seacat.controller.onAction(SeaCat.ACTION_IDENTITY_RENEW)
         if (certificate == null) {
             seacat.controller.onInitialEnrollmentRequested(seacat)
         } else {
@@ -74,7 +72,28 @@ class Identity(private val seacat: SeaCat) {
 
     // Check validity of the identity certificate
     internal fun verify(): Boolean {
-        //TODO: This ...
+        val certificate = certificate ?: return false
+
+        // Do a soft verification of the expiration, commence renewal if needed
+        // If the identity certificate is after a half of its life
+        // OR it is less than 30 days to expiration day
+        // then start renew() process
+        val nbf_millisec = certificate.notBefore.time
+        val naf_millisec = certificate.notAfter.time
+        val now_millisec = Date().time
+        val half_millisec = (naf_millisec - nbf_millisec) / 2L
+        val days30_millisec = 30 /* days */ * 24 /* hours in day */ * 60 /* minutes in hour */ * 60 /* seconds in minute */ * 1000L /* milliseconds in a second */
+        if ((now_millisec > (naf_millisec - half_millisec)) or (now_millisec > (naf_millisec - days30_millisec))) {
+            SeaCat.executor.submit(Callable {
+                renew()
+            })
+        }
+
+        if (nbf_millisec > now_millisec) return false; // Not valid yet
+        if (naf_millisec < now_millisec) return false; // Not valid any longer
+
+        //TODO: More verifications ...
+
         return true
     }
 

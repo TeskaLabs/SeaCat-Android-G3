@@ -24,6 +24,7 @@ class SeaCat(
         @JvmStatic
         val TAG = "SeaCat"
 
+        const val ACTION_IDENTITY_RENEW = "IDENTITY_RENEW"
         const val ACTION_IDENTITY_ENROLLED = "IDENTITY_ENROLLED"
         const val ACTION_IDENTITY_REVOKED = "IDENTITY_REVOKED"
 
@@ -54,7 +55,10 @@ class SeaCat(
     val peers = PeerProvider(this)
 
     val ready: Boolean
-        get() { return identity.certificate != null }
+        get() {
+            if (identity.certificate == null) return false
+            return identity.verify()
+        }
 
     init {
 

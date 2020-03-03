@@ -176,7 +176,7 @@ class Identity(private val seacat: SeaCat) {
 //        Log.i(TAG, ">>> " + x)
 
         SeaCat.executor.submit(Callable {
-            val url = URL(seacat.apiURL + "/enroll")
+            val url = seacat.constructApiURL("/enroll")
 
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = "PUT"

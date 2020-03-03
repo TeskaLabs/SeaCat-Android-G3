@@ -2,6 +2,7 @@ package com.teskalabs.seacat
 
 import android.content.Context
 import java.net.Socket
+import java.net.URL
 import java.security.Principal
 import java.security.PrivateKey
 import java.security.cert.CertificateFactory
@@ -15,7 +16,7 @@ import javax.net.ssl.X509TrustManager
 
 class SeaCat(
     internal val context: Context,
-    internal val apiURL: String,
+    private val apiURL: String,
     internal val controller: Controller = Controller()
 ) {
 
@@ -72,6 +73,7 @@ class SeaCat(
             })
         }
     }
+
 
     val sslContext: SSLContext
         get () {
@@ -137,5 +139,16 @@ class SeaCat(
         get() {
             return executor
         }
+
+
+    internal fun constructApiURL(postfix: String): URL
+    {
+        val clean_url = apiURL.trim('/')
+        if (postfix[0] != '/') {
+            return URL(clean_url + '/' + postfix)
+        } else {
+            return URL(clean_url + postfix)
+        }
+    }
 
 }

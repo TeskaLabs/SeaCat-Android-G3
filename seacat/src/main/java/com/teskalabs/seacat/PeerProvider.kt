@@ -108,7 +108,7 @@ class PeerProvider(private val seacat: SeaCat) {
 private class PeerCertificateDownloadTask(private val seacat: SeaCat, private val identity: String, private val diskcachedir: File) : Callable<Certificate?> {
 
     override fun call(): Certificate? {
-        val url = URL(seacat.apiURL + "/get/$identity")
+        val url = seacat.constructApiURL("/get/$identity")
 
         val certificate: Certificate = with (url.openConnection() as HttpURLConnection ) {
             requestMethod = "GET"

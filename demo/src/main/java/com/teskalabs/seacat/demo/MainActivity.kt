@@ -9,11 +9,8 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.teskalabs.seacat.SeaCat
-import com.teskalabs.seacat.misc.Base32
 import kotlinx.android.synthetic.main.activity_main.*
 import java.net.URL
-import java.security.MessageDigest
-import java.security.PublicKey
 import java.text.SimpleDateFormat
 import javax.net.ssl.HttpsURLConnection
 

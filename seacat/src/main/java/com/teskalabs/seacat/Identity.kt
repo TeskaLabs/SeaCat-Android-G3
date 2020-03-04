@@ -18,8 +18,6 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.Callable
-import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
 
 
 // Identity is a basically the set of public key, private key and certificate
@@ -342,14 +340,13 @@ class Identity(private val seacat: SeaCat) {
             return keyStore
         }
 
+    // This call is reliable only on Android >= API 23
     val isInsideSecureHardware: Boolean
         get() {
-            val key = privateKey
-            if (key == null) return false
-
+            val key = privateKey ?: return false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val factory: SecretKeyFactory = SecretKeyFactory.getInstance(key.getAlgorithm(), "AndroidKeyStore")
-                val keyInfo = factory.getKeySpec(key as SecretKey, KeyInfo::class.java) as KeyInfo
+                val keyFactory = KeyFactory.getInstance(key.getAlgorithm(), "AndroidKeyStore")
+                val keyInfo =  keyFactory.getKeySpec(key, KeyInfo::class.java)
                 return keyInfo.isInsideSecureHardware
             }
             return false

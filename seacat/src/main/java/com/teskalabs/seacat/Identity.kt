@@ -1,6 +1,8 @@
 package com.teskalabs.seacat
 
+import android.os.Build
 import android.os.Handler
+import android.security.keystore.KeyInfo
 import android.util.Base64
 import android.util.Log
 import com.teskalabs.seacat.miniasn1.MiniASN1
@@ -16,6 +18,8 @@ import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.Callable
+import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 
 
 // Identity is a basically the set of public key, private key and certificate
@@ -90,7 +94,7 @@ class Identity(private val seacat: SeaCat) {
     // Revoke the identity (
     fun revoke() {
         keyStore.deleteEntry(alias)
-        keyStore.deleteEntry(alias + "Certificate")
+        certificate = null
 
         seacat.controller.onAction(SeaCat.ACTION_IDENTITY_REVOKED)
 
@@ -279,6 +283,10 @@ class Identity(private val seacat: SeaCat) {
                 editor
                     .remove(PREF_IDENTITY_CERTIFICATE)
                     .apply()
+                // This is fallback to an old and obsolete way of storing client certificate
+                // Remove this code after January 2023
+                keyStore.deleteEntry(alias + "Certificate")
+                // End of the obsolete code -----------
             }
             cachedCertificate = certificate
         }
@@ -286,6 +294,7 @@ class Identity(private val seacat: SeaCat) {
     // Get identity public key
     val publicKey: PublicKey?
         get() {
+            // Well, correctly we should get a public key from a private key, not from identity
             return certificate?.getPublicKey()
         }
 
@@ -333,6 +342,18 @@ class Identity(private val seacat: SeaCat) {
             return keyStore
         }
 
+    val isInsideSecureHardware: Boolean
+        get() {
+            val key = privateKey
+            if (key == null) return false
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val factory: SecretKeyFactory = SecretKeyFactory.getInstance(key.getAlgorithm(), "AndroidKeyStore")
+                val keyInfo = factory.getKeySpec(key as SecretKey, KeyInfo::class.java) as KeyInfo
+                return keyInfo.isInsideSecureHardware
+            }
+            return false
+        }
 }
 
 

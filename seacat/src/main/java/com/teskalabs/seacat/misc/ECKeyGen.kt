@@ -12,14 +12,11 @@ import java.security.KeyPairGenerator
 
 // Generate a private and public key for an identity
 fun generateECKeyPair(context: Context, alias: String, requireUserAuth: Boolean): KeyPair {
-
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
         return generate_api19_22(context, alias, requireUserAuth)
     } else {
         return generate_api23(alias, requireUserAuth)
     }
-
-
 }
 
 
@@ -66,6 +63,7 @@ private fun generate_api23(alias: String, requireUserAuth: Boolean): KeyPair {
             setUserAuthenticationRequired(true)
             setUserAuthenticationValidityDurationSeconds(5)
         }
+        //TODO: setIsStrongBoxBacked(true) ... consider this
         build()
     }
 

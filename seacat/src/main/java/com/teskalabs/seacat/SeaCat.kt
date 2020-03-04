@@ -1,6 +1,7 @@
 package com.teskalabs.seacat
 
 import android.content.Context
+import android.content.SharedPreferences
 import java.net.Socket
 import java.net.URL
 import java.security.Principal
@@ -24,6 +25,8 @@ class SeaCat(
 
         @JvmStatic
         val TAG = "SeaCat"
+
+        const val SHARED_PREF_KEY = "SEACAT_SHARED_PREFS"
 
         const val ACTION_IDENTITY_RENEW = "IDENTITY_RENEW"
         const val ACTION_IDENTITY_ENROLLED = "IDENTITY_ENROLLED"
@@ -141,6 +144,8 @@ class SeaCat(
         }
 
 
+    // Private parts
+
     internal fun constructApiURL(postfix: String): URL
     {
         val clean_url = apiURL.trim('/')
@@ -150,5 +155,10 @@ class SeaCat(
             return URL(clean_url + postfix)
         }
     }
+
+    internal val sharedPreferences: SharedPreferences
+        get() {
+            return context.getSharedPreferences(SHARED_PREF_KEY, Context.MODE_PRIVATE)
+        }
 
 }

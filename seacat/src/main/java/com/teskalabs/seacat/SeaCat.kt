@@ -8,7 +8,6 @@ import java.security.Principal
 import java.security.PrivateKey
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
-import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.net.ssl.SSLContext
@@ -63,19 +62,6 @@ class SeaCat(
             if (identity.certificate == null) return false
             return identity.verify()
         }
-
-    init {
-
-        // Initialize the identity
-        // The load has to happen in the synchronous way so that we indicate consistently if the identity is usable or nor
-        if (identity.load()) {
-            identity.verify()
-        } else {
-            executor.submit(Callable {
-                identity.renew()
-            })
-        }
-    }
 
 
     val sslContext: SSLContext

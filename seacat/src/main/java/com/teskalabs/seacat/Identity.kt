@@ -1,27 +1,54 @@
 package com.teskalabs.seacat
 
+import android.os.Handler
+import android.util.Base64
 import android.util.Log
 import com.teskalabs.seacat.miniasn1.MiniASN1
 import com.teskalabs.seacat.misc.Base32
 import com.teskalabs.seacat.misc.generateECKeyPair
+import java.io.ByteArrayInputStream
 import java.io.DataOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
-import java.net.URL
 import java.security.*
 import java.security.cert.Certificate
+import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.*
 import java.util.concurrent.Callable
 
-//TODO: Ensure that verify() is called periodically b/c it starts identity certificate renew process if needed
 
-// Identity is a basically combination of certificate + public key + private key
-// It is used to represent a current application instance in a cryptography strong manner
+// Identity is a basically the set of public key, private key and certificate
+// It represents the application instance in a cryptographically strong manner
 class Identity(private val seacat: SeaCat) {
 
     private val TAG = "Identity"
     private val alias = "SeaCatIdentity"
+
+    private val PREF_IDENTITY_CERTIFICATE = "identity_certificate"
+
+
+    // Ensure periodic verification of the identity certificate, which triggers renewal process, if needed
+    private val handler: Handler = Handler()
+    private val periodicRunnable: Runnable = object : Runnable {
+        override fun run() {
+            cachedCertificate = null // Force loading certificate from the KeyStore
+            verify()
+            handler.postDelayed(this, 6 /* hours */ * 60 /* minutes in hour */ * 60 /* seconds in a minute */ * 1000 /* milliseconds in seconds */)
+        }
+    }
+
+
+    init {
+        // The load has to happen in the synchronous way so that we indicate consistently if the identity is usable or nor
+        if (!load()) {
+            SeaCat.executor.submit(Callable {
+                renew()
+            })
+        }
+
+        handler.postDelayed(periodicRunnable, 60 * 1000) // The first re-verification will happen after a minute of the app use
+    }
 
 
     fun renew() {
@@ -169,12 +196,6 @@ class Identity(private val seacat: SeaCat) {
     // Submit certificat request to a server (CA) for an approval
     private fun enrollCertificateRequest(certificate_request: ByteArray) {
 
-//        var x: String = ""
-//        for (c in certificate_request) {
-//            x = x + "%02X ".format(c)
-//        }
-//        Log.i(TAG, ">>> " + x)
-
         SeaCat.executor.submit(Callable {
             val url = seacat.constructApiURL("/enroll")
 
@@ -200,8 +221,10 @@ class Identity(private val seacat: SeaCat) {
 
             //TODO: Check Content-Type ... a certificate or JSON
 
-            val certificate = SeaCat.certificateFactory.generateCertificate(connection.inputStream)
-            keyStore.setCertificateEntry(alias + "Certificate", certificate)
+            val c = SeaCat.certificateFactory.generateCertificate(connection.inputStream)
+            if (c != null) {
+                certificate = c as X509Certificate
+            }
 
             load()
 
@@ -212,21 +235,59 @@ class Identity(private val seacat: SeaCat) {
 
     ///
 
-    // Get identity certificate
-    val certificate: X509Certificate?
+    // Persistent identity certificate
+    // It is stored in the SeaCat shared preferences, the Android keystore storage generated non-critical but ugly exceptions
+    private var cachedCertificate: X509Certificate? = null
+    var certificate: X509Certificate?
         get() {
+            if (cachedCertificate != null)
+                return cachedCertificate
+
+            val v = seacat.sharedPreferences.getString(PREF_IDENTITY_CERTIFICATE, null)
+            if (v != null) {
+                val factory = CertificateFactory.getInstance("X.509")
+                cachedCertificate = factory.generateCertificate(
+                    ByteArrayInputStream(
+                        Base64.decode(v, Base64.DEFAULT)
+                    )
+                ) as X509Certificate?
+                if (cachedCertificate != null)
+                    return cachedCertificate
+            }
+
+            // This is fallback to an old and obsolete way of storing client certificate
+            // Remove this code after January 2023
             try {
-                return keyStore.getCertificate(alias + "Certificate") as X509Certificate?
+                cachedCertificate = keyStore.getCertificate(alias + "Certificate") as X509Certificate?
+                return cachedCertificate
             }
             catch (e: KeyStoreException) {
                 Log.w(TAG, "Failed to get certificate from a keystore", e)
-                return null
             }
+            // End of the obsolete code -----------
+
+            return null
+        }
+
+        internal set(certificate) {
+            val editor = seacat.sharedPreferences.edit()
+            if (certificate != null) {
+                editor
+                    .putString(PREF_IDENTITY_CERTIFICATE, Base64.encodeToString(certificate.encoded, Base64.DEFAULT))
+                    .apply()
+            } else {
+                editor
+                    .remove(PREF_IDENTITY_CERTIFICATE)
+                    .apply()
+            }
+            cachedCertificate = certificate
         }
 
     // Get identity public key
     val publicKey: PublicKey?
-        get() { return certificate?.getPublicKey() }
+        get() {
+            return certificate?.getPublicKey()
+        }
 
 
     // Get a private key
@@ -255,7 +316,6 @@ class Identity(private val seacat: SeaCat) {
             val key = keyStore.getKey(alias, null)
             if (key == null) return false
         } catch (e: GeneralSecurityException) {
-            //Log.w(SeaCatInternals.L, "Failed to validate that the " + this.alias + " key exists:", e)
             return false
         }
         return true
@@ -272,6 +332,7 @@ class Identity(private val seacat: SeaCat) {
             }
             return keyStore
         }
+
 }
 
 

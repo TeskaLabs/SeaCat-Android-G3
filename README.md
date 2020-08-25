@@ -63,5 +63,14 @@ We assume that your Android project is managed by Git version control system.
 		}
 	}
 	```
-_Remark: `https://pki.seacat.io/seacat-demo/seacat` is a public demo instance of the SeaCat PKI._
+	
+   _Remark: `https://pki.seacat.io/seacat-demo/seacat` is a public demo instance of the SeaCat PKI._
+
+
+2. Test
+
+   Make URL request to SeaCat gateway at https://seacat-demo.seacat.io/hello
+
+   * 200 means that all is good and the client is authenticated by SeaCat
+   * 403 means that the authentication failed (the client is untrusted by a gateway)
 

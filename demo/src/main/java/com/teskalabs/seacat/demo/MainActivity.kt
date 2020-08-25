@@ -84,20 +84,16 @@ class MainActivity : AppCompatActivity() {
 
     fun onRestCallClicked(view: android.view.View) {
         Thread({
-            val url = URL("https://zscanner.seacat.io/medicalc/v3.1/departments")
+            val url = URL("https://seacat-demo.seacat.io/hello")
 
             val connection = url.openConnection() as HttpsURLConnection
             // Configure the HTTPS connection to use SeaCat SSL context
             connection.setSSLSocketFactory(SeaCat.sslContext.socketFactory)
 
             val istream = connection.getInputStream()
-            val bytes = istream.readBytes()
+            val response_body = String(istream.readBytes())
 
-            var result = ""
-            for (b in bytes) {
-                result += String.format("%02X", b)
-            }
-            Log.i(SeaCat.TAG, "Downloaded: " + result)
+            Log.i(SeaCat.TAG, "Downloaded: " + response_body)
         }).start()
     }
 

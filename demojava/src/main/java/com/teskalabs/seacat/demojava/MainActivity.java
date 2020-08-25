@@ -15,6 +15,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 
@@ -76,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    URL url = new URL("https://zscanner.seacat.io/medicalc/v3.1/departments");
+                    URL url = new URL("https://seacat-demo.seacat.io/hello");
 
                     HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
 
@@ -92,12 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     buffer.flush();
-                    byte[] bytes = buffer.toByteArray();
-
-                    StringBuilder result = new StringBuilder();
-                    for (byte b : bytes) {
-                        result.append(String.format("%02X", b));
-                    }
+                    String result = buffer.toString("UTF-8");
                     Log.i("MainActivity", "Downloaded: " + result);
 
 

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 29
@@ -9,8 +10,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 29
-        versionCode 200301
-        versionName "20.03.01"
+        versionCode 210200
+        versionName "21.02.00"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -36,4 +37,15 @@ dependencies {
 }
 repositories {
     mavenCentral()
+}
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.teskalabs.seacat'
+            artifactId = 'seacat-android-g3'
+            version = '21.2.0'
+        }
+    }
 }

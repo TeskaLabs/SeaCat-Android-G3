@@ -1,7 +1,20 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'maven-publish'
+
+ext {
+    PUBLISH_GROUP_ID = 'com.teskalabs.seacat'
+    PUBLISH_VERSION = '21.04.01'
+    PUBLISH_ARTIFACT_ID = 'seacat-android-g3'
+    DESCRIPTION = 'SeaCat SDK is the 3rd generation of a SeaCat client for Android.'
+    PUBLISH_URL = "https://github.com/TeskaLabs/SeaCat-Android-G3"
+    SCM_CONNECTION = 'scm:git:github.com/TeskaLabs/SeaCat-Android-G3.git'
+    SCM_DEV_CONNECTION = 'scm:git:ssh://github.com/TeskaLabs/SeaCat-Android-G3.git'
+    SCM_URL = 'https://github.com/TeskaLabs/SeaCat-Android-G3/tree/master'
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
+
 
 android {
     compileSdkVersion 29
@@ -10,10 +23,9 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 29
-        versionCode 210200
-        versionName "21.02.00"
+        versionCode 210401
+        versionName "21.04.01"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -25,27 +37,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-
-    testImplementation 'junit:junit:4.13'
 }
+
 repositories {
     mavenCentral()
 }
 
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = 'com.teskalabs.seacat'
-            artifactId = 'seacat-android-g3'
-            version = '21.2.0'
-        }
-    }
-}

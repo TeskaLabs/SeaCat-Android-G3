@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/SeaCat-Android-G3.iml" filepath="$PROJECT_DIR$/SeaCat-Android-G3.iml" />
-      <module fileurl="file://$PROJECT_DIR$/demo/demo.iml" filepath="$PROJECT_DIR$/demo/demo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/demojava/demojava.iml" filepath="$PROJECT_DIR$/demojava/demojava.iml" />
-      <module fileurl="file://$PROJECT_DIR$/seacat/seacat.iml" filepath="$PROJECT_DIR$/seacat/seacat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/demo/SeaCat-Android-G3.demo.iml" filepath="$PROJECT_DIR$/.idea/modules/demo/SeaCat-Android-G3.demo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/demojava/SeaCat-Android-G3.demojava.iml" filepath="$PROJECT_DIR$/.idea/modules/demojava/SeaCat-Android-G3.demojava.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/seacat/SeaCat-Android-G3.seacat.iml" filepath="$PROJECT_DIR$/.idea/modules/seacat/SeaCat-Android-G3.seacat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Workspace.SeaCat-Android-G3.iml" filepath="$PROJECT_DIR$/.idea/modules/Workspace.SeaCat-Android-G3.iml" />
     </modules>
   </component>
 </project>
